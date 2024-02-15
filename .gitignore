@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Planning files
+notes.txt
+
+# VS Code
+.history
