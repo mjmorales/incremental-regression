@@ -22,6 +22,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <!-- Tabs -->
       <div class="overflow-x-auto">
         <div class="flex justify-between sm:justify-center my-2 whitespace-nowrap">
+          <RouterLink to="/events" class="tab mx-1">Events</RouterLink>
           <RouterLink to="/encounter" class="tab mx-1">Encounter</RouterLink>
           <button class="tab mx-1">Exploration</button>
           <button class="tab mx-1">Social</button>

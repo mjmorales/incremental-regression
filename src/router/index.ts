@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import EncounterVue from '@/views/Encounter.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,7 +6,12 @@ const router = createRouter({
     {
       path: '/encounter',
       name: 'Encounter',
-      component: EncounterVue
+      component: () => import('@/views/Encounter.vue')
+    },
+    {
+      path: '/events',
+      name: 'Events',
+      component: () => import('@/views/GameEvents.vue')
     }
   ]
 })
