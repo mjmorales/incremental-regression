@@ -1,10 +1,12 @@
-import { actionReady, type NullableUnitAction, type Unit } from "./unit";
+import { useCombatEvents } from "@/stores/combat";
+import { Ticker } from "./ticker";
+import { actionReady, type Unit, type UnitAction } from "./unit";
 
 export class Party {
   units: Unit[] = [];
 
-  addUnit(unit: Unit) {
-    this.units.push(unit);
+  addUnit(...units: Unit[]) {
+    this.units.push(...units);
   }
 }
 
@@ -18,11 +20,11 @@ const getHighestThreatUnit = (party: Party): Unit => {
 }
 
 
-const getActions = (party: Party): NullableUnitAction[] => {
-  return party.units.map((unit) => unit.selectedAction);
+const getActions = (party: Party): UnitAction[] => {
+  return party.units.flatMap((unit) => unit.actions);
 }
 
-const executeAction = (deltaTime: number, action: NullableUnitAction, enemyParty: Party) => {
+const executeAction = (deltaTime: number, action: UnitAction, enemyParty: Party) => {
   if (action === null) {
     return;
   }
@@ -31,24 +33,47 @@ const executeAction = (deltaTime: number, action: NullableUnitAction, enemyParty
     return;
   }
 
+
+  const eventLog = useCombatEvents();
+
   const highestThreatUnit = getHighestThreatUnit(enemyParty);
-  action.base.execute(action.user, highestThreatUnit);
+  const event = action.base.execute(action.user, highestThreatUnit);
+  eventLog.addEvent(event);
+
   action.progress = 0;
+  action.secondsReadied = 0;
 }
 
 export class Encounter {
   enemyParty: Party;
   playerParty: Party;
+  private ticker?: Ticker;
 
   constructor(playerParty: Party, enemyParty: Party) {
     this.playerParty = playerParty;
     this.enemyParty = enemyParty;
   }
 
-  Tick(deltaTime: number) {
+  tick(deltaTime: number) {
     const playerActions = getActions(this.playerParty);
     const enemyActions = getActions(this.enemyParty);
     playerActions.forEach((action) => executeAction(deltaTime, action, this.enemyParty));
     enemyActions.forEach((action) => executeAction(deltaTime, action, this.playerParty));
+  }
+
+  complete() {
+    const hasLiveUnits = (party: Party) => party.units.some((unit) => unit.health > 0);
+    const playerUnitsAlive = hasLiveUnits(this.playerParty);
+    const enemyUnitsAlive = hasLiveUnits(this.enemyParty);
+    return !playerUnitsAlive || !enemyUnitsAlive;
+  }
+
+
+  Start() {
+    const eventLog = useCombatEvents();
+    this.ticker = new Ticker(200, () => this.complete());
+    this.ticker.addUpdateFunction((deltaTime) => this.tick(deltaTime));
+    this.ticker.addStopCallback(() => eventLog.clearEvents())
+    this.ticker.start();
   }
 }

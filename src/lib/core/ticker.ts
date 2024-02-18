@@ -6,9 +6,13 @@ export class Ticker {
     private lastTick: number = Date.now();
     private tickRate: number;
     private intervalId: number | null = null;
+    private stopIf: () => boolean;
+    private ticking: boolean = false;
+    private stopCallbacks: (() => void)[] = [];
 
-    constructor(tickRate: number) {
+    constructor(tickRate: number, stopIf: () => boolean = () => false) {
         this.tickRate = tickRate;
+        this.stopIf = stopIf;
     }
 
     start(): void {
@@ -24,6 +28,12 @@ export class Ticker {
     }
 
     private tick(): void {
+        if (this.ticking) {
+            return;
+        }
+
+        this.ticking = true;
+
         const now = Date.now();
         const deltaTime = now - this.lastTick;
         this.lastTick = now;
@@ -33,6 +43,14 @@ export class Ticker {
         for (const callback of this.callbacks) {
             callback();
         }
+        if (this.stopIf()) {
+            this.stop();
+            for (const stopCallback of this.stopCallbacks) {
+                stopCallback();
+            }
+        }
+
+        this.ticking = false;
     }
 
     addUpdateFunction(updateFunction: UpdateFunction): void {
@@ -41,6 +59,10 @@ export class Ticker {
 
     addCallback(callback: () => void): void {
         this.callbacks.push(callback);
+    }
+
+    addStopCallback(callback: () => void): void {
+        this.stopCallbacks.push(callback);
     }
 
     setTickRate(newTickRate: number): void {
