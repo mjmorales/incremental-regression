@@ -6,7 +6,6 @@ import { computed, watch } from 'vue';
 
 const store = useGameEvents();
 const c = computed(() => {
-  console.log('GameEvents.vue: computed gameEvents', store.gameEvents);
   return {
     gameEvents: store.gameEvents,
   };
@@ -19,12 +18,12 @@ const c = computed(() => {
     <div class="event" v-for="(event, index) in c.gameEvents" :key="index">
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-          <h2 class="card-title">{{ event.name }}</h2>
-          <p>{{ event.description }}</p>
-          <GameEventCountdown :event="event" />
+          <h2 class="card-title">{{ event.value.name }}</h2>
+          <p>{{ event.value.description }}</p>
+          <GameEventCountdown :event="event.value" />
           <div class="divider"></div>
           <ul>
-            <li v-for="(evaluator, index) in event.evaluators" :key="index">
+            <li v-for="(evaluator, index) in event.value.evaluators" :key="index">
               <span>{{ evaluator.description }} - {{ evaluator.requirement }}</span>
             </li>
           </ul>
