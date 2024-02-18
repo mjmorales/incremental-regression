@@ -2,8 +2,12 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { Game } from '@/lib/game'
 import { fightGoblinParty } from '@/lib/testing';
+import type { GameEvent } from '@/lib/core/event';
+import { goblinInvasion } from '@/lib/core/events/required';
+
 
 const game = ref(new Game())
+const gameEvents = ref<GameEvent[]>([])
 
 export const useGameStore = defineStore('game', () => {
   const player = computed(() => game.value.player)
@@ -20,4 +24,14 @@ export const useGameStore = defineStore('game', () => {
   }
 });
 
-game.value.activeEncounter = fightGoblinParty(game.value)
+
+export const useGameEvents = defineStore('gameEvents', () => {
+  return {
+    gameEvents,
+  }
+});
+
+const goblinInvasionEvent = goblinInvasion(game.value as Game)
+game.value.activeEncounter = fightGoblinParty(game.value as Game)
+gameEvents.value.push(goblinInvasionEvent)
+goblinInvasionEvent.start()

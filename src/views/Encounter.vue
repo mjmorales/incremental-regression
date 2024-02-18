@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, type Ref, computed } from 'vue';
+import { ref, onMounted, watch, type Ref } from 'vue';
 import { useCombatEvents } from '@/stores/combat';
 import { useGameStore } from '@/stores/game';
 import UnitCard from '@/components/encounters/UnitCard.vue';
@@ -18,20 +18,17 @@ onMounted(() => {
 const unitStatuses: Ref<{ [key:string]: String }> = ref({});
 
 watch(combatEventsStore.events, (events) => {
-  // Get only the new events that were not in the old array
-
   events.forEach((event) => {
     if(event.acknowledged) return;
     event.acknowledged = true;
 
-    const unitId = event.target.getId(); // Assuming each unit has a unique id.
+    const unitId = event.target.getId();
     if (event.type === 'damage') {
       unitStatuses.value[unitId] = 'damaged';
     } else if (event.type === 'heal') {
       unitStatuses.value[unitId] = 'healed';
     }
 
-    console.log(event.description)
     // Remove the status after the animation duration.
     setTimeout(() => {
       if (unitStatuses.value[unitId]) {
